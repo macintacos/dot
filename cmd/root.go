@@ -17,18 +17,21 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "dot",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "This is a tool meant to manage macintacos/dotfiles",
+	Long: `This is a tool, born out of laziness (or experimentation?)
+that is meant to be used for the initialization (eventually)
+and the backup of various files and such to a git repository
+(in this case, my dotfiles, which are currently living in
+github.com/macintacos/dotfiles.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+This is not meant for anyone else. This is meant for me and me alone.
+If you're looking at this, please only do so for educational purposes,
+of if you're wondering what it looks like when someone who has no idea
+what they're doing tries their hand at making a Go CLI application
+for personal use.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		initConfig()
-		fmt.Println("Current location of your dotfiles:", viper.Get("dotfiles.path"))
 		dotfilePath, err := homedir.Expand(viper.Get("dotfiles.path").(string))
 		if err != nil {
 			fmt.Println(err)
