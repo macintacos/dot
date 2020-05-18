@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -27,6 +29,37 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		initConfig()
 		fmt.Println("Current location of your dotfiles:", viper.Get("dotfiles.path"))
+		dotfilePath, err := homedir.Expand(viper.Get("dotfiles.path").(string))
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		backupPath, err := homedir.Expand(viper.Get("dotfiles.backup").(string))
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		var backupFiles []string
+
+		fmt.Println("Current location of your dotfiles:", dotfilePath)
+
+		fmt.Println("We're currently backing up:")
+
+		filecount := 0
+		err = filepath.Walk(backupPath, visit(&backupFiles))
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		for _, file := range backupFiles {
+			if filecount == 0 {
+				filecount++
+				continue
+			}
+			fmt.Println("\t", filecount, ":", file)
+			filecount++
+		}
 	},
 }
 
@@ -46,7 +79,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.dot)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.dot.toml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -77,5 +110,16 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+func visit(files *[]string) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
+		*files = append(*files, path)
+		return nil
 	}
 }
